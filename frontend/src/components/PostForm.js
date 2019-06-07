@@ -40,10 +40,7 @@ class PostForm extends Component {
         if (postId !== nextPostId) {
             this.setOperation(nextPostId)
         }
-        //console.log('toda vez que clico:' +postId)
     }
-
-
 
     setOperation(postId) {
         if (postId !== undefined) {
@@ -118,56 +115,27 @@ class PostForm extends Component {
     render() {
         if (this.state.redirectToHome) return <Redirect to={'/'} />
 
-        //console.log(this.state.category)
-        const x = this.state.category
-        console.log(x)
-
-        const xhtml = 'teste1111111111111111'
-
-        const xdefault = 'defaultValue='+'"'+x+'"'
-        //const template = `<div>${user.name} - <span>${user.email}</span></div>`;
-
-        const temp =    `<div>
-                            <p>${x}</p>
-                        </div>`
+        const { operation } = this.state
 
         return (
             <div>
-                <p>{xhtml}</p>
-                <p>{xdefault}</p>
+                <h1>Form {capitalize(operation)} Post</h1>
 
-                <p>{temp}</p>
-
-                <p>{`
-                    if (${x} =='react') {
-                        <p>enio</p>
-                    }
-                        ${x}
-                    `}
-                </p>
-
-                
-                
-                <h1>Form {capitalize(this.state.operation)} Post</h1>
                 Title:
                 <input id="title" type="text" value={this.state.title} onChange={this.handleChange} />
+
                 Body:
                 <input id="body" type="text" value={this.state.body} onChange={this.handleChange} />
+
                 Author:
                 <input id="author" type="text" value={this.state.author} onChange={this.handleChange} />
-                <p>category: {this.state.category}</p>
-                {xdefault}
+
                 Category:
-                {this.state.category === 'react' && (
-                    <select id="category" defaultValue={`${x}`} onChange={this.handleChange}>
-                        <option value="react">react</option>
-                        <option value="redux">redux</option>
-                        <option value="udacity">udacity</option>
-                    </select>
-                )}
-
-                
-
+                <select id="category" value={this.state.category} onChange={this.handleChange}>
+                    <option value="react" >react</option>
+                    <option value="redux">redux</option>
+                    <option value="udacity">udacity</option>
+                </select>
 
                 <br />
 
@@ -176,9 +144,8 @@ class PostForm extends Component {
                 )}
 
                 <br />
-                <button onClick={this.handleAdd}>Add Post</button>
 
-                <button onClick={this.getPost}>GET Post</button>
+                <button onClick={this.handleAdd}>{capitalize(operation)} Post</button>
 
                 <Link to={'/'}><button>Cancel</button></Link>
             </div>
