@@ -50,5 +50,11 @@ export const deletePost = data => dispatch =>
         }
     })
 
-
+export const updatePost = post => dispatch =>
+    ReadableAPI.updatePost(post).then(data =>
+        dispatch({
+            type: 'UPDATE_POST',
+            payload: data
+        })
+    )
 

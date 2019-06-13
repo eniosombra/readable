@@ -4,13 +4,20 @@ import { connect } from 'react-redux'
 import { Link } from 'react-router-dom'
 
 import { searchPosts, searchPostsByCategory, votePost, deletePost } from '../actions/postsAction'
-import { capitalize } from '../helper/helper'
+import { sortPosts } from '../actions/postOrderActions'
+import { capitalize, formatDateTime, sortBy } from '../helper/helper'
+import './PostList.css'
+import iconLike from '../assets/like.png'
+import iconUnlike from '../assets/unlike.png'
+import iconEdit from '../assets/edit.png'
+import iconTrash from '../assets/delete.png'
+import iconView from '../assets/view.png'
+import iconOrderByDateTime from '../assets/order-by-time.png'
+import iconOrderByScore from '../assets/order-by-score.png'
 
 class PostList extends Component {
-
     componentDidMount() {
         const { category } = this.props.match.params
-
         if (category === undefined) {
             this.props.searchPosts()
         } else {
@@ -26,6 +33,10 @@ class PostList extends Component {
         }
     }
 
+    sortByScore = (order) => {
+        this.props.sortPosts(order)
+    }
+
     render() {
         const { category } = this.props.match.params
         const { posts } = this.props
@@ -34,21 +45,36 @@ class PostList extends Component {
 
         return (
             <div>
-                <h1>PostList Component</h1>
-                <h3>{category}</h3>
+                <header id="main-header">
+                    <div className="header-submenu">
+                        <h3>List of Posts: <b> {category ? category.toUpperCase() + ' ' : ' ALL '} </b></h3>
+
+                        Sort by:
+                        <img src={iconOrderByScore} onClick={() => this.sortByScore('SCORE_ORDER')} title="Sort by Score" alt="Sort by Score" />
+                        <img src={iconOrderByDateTime} onClick={() => this.sortByScore('TIMESTAMP_ORDER')} title="Sort by Time" alt="Sort by Time" />
+                    </div>
+                </header>
 
                 {posts.map(post => (
-                    <div key={post.id}>
+                    <div key={post.id} className="divPost">
                         <h2>{post.title}</h2>
-                        <p>Author: {capitalize(post.author)} || Vote Score: {post.voteScore} || Comment: {post.commentCount} || Category: {post.category.toUpperCase()}</p>
+                        <p><b>Author:</b> {capitalize(post.author)}  <b>Category:</b> {capitalize(post.category)}  <b>Sent:</b> {formatDateTime(post.timestamp)}</p>
 
-                        <Link to={`/${post.category}/${post.id}`}><button>View</button></Link>
-                        <Link to={`/post/edit/${post.id}`}><button>Edit</button></Link>
-                        <button onClick={() => votePost(post.id, 'upVote')}>VoteUp</button>
-                        <button onClick={() => votePost(post.id, 'downVote')}>VoteDown</button>
-                        <button onClick={() => deletePost(post)}>Delete</button>
+                        <p><b>Comment:</b> {post.commentCount}  <b>Vote Score:</b> {post.voteScore} </p>
 
-                        <p>------------------------------------------------------</p>
+                        <div className="action-button">
+                            <Link to={`/${post.category}/${post.id}`}>
+                                <img src={iconView} title="View Detail" alt="View Detail" />
+                            </Link>
+
+                            <Link to={`/post/edit/${post.id}`}>
+                                <img src={iconEdit} title="Edit Post" alt="Edit Post" />
+                            </Link>
+
+                            <img src={iconLike} onClick={() => votePost(post.id, 'upVote')} title="Vote UP" alt="Vote UP" />
+                            <img src={iconUnlike} onClick={() => votePost(post.id, 'downVote')} title="Vote DOWN" alt="Vote DOWN" />
+                            <img src={iconTrash} onClick={() => deletePost(post)} title="Delete Post" alt="Delete Post" />
+                        </div>
                     </div>
                 ))}
             </div>
@@ -56,7 +82,7 @@ class PostList extends Component {
     }
 }
 
-const mapStateToProps = posts => posts
-const mapDispatchToProps = dispatch => bindActionCreators({ searchPosts, searchPostsByCategory, votePost, deletePost }, dispatch)
+const mapStateToProps = ({ posts, postsOrder }) => ({ posts: sortBy(posts && posts.slice(), postsOrder), })
+const mapDispatchToProps = dispatch => bindActionCreators({ searchPosts, searchPostsByCategory, votePost, deletePost, sortPosts }, dispatch)
 export default connect(mapStateToProps, mapDispatchToProps)(PostList)
 

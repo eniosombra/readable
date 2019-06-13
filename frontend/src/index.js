@@ -10,23 +10,18 @@ import thunk from 'redux-thunk'
 import categoriesReducers from './reducers/categoriesReducers'
 import postsReducers from './reducers/postsReducers'
 import commentsReducers from './reducers/commentsReducers'
+import postsOrder from './reducers/postOrderReducers'
 
 const reducers = combineReducers({
     categories: categoriesReducers,
     posts: postsReducers,
-    comments: commentsReducers
+    comments: commentsReducers,
+    postsOrder : postsOrder
 })
 
 const devTools = window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
 
 const store = applyMiddleware(thunk)(createStore)(reducers, devTools)
-
-/*
-const store = createStore(
-    reducers,
-    applyMiddleware(thunk)
-)
-*/
 
 ReactDOM.render(
 

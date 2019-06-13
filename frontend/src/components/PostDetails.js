@@ -2,68 +2,102 @@ import React, { Component } from 'react'
 import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
 import { Link } from 'react-router-dom'
+import { Redirect } from 'react-router-dom'
 
-import { searchPosts, searchPostById, searchPostsByCategory, votePost } from '../actions/postsAction'
-import { searchCommentsByPost, voteComment } from '../actions/commentsAction'
-
+import CommentForm from './CommentForm'
+import { searchPosts, searchPostById, searchPostsByCategory, votePost, deletePost } from '../actions/postsAction'
+import { searchCommentsByPost, voteComment, deleteComment } from '../actions/commentsAction'
 import { capitalize, formatDateTime } from '../helper/helper'
-
+import iconLike from '../assets/like.png'
+import iconUnlike from '../assets/unlike.png'
+import iconEdit from '../assets/edit.png'
+import iconTrash from '../assets/delete.png'
+import iconComment from '../assets/add-comment.png'
 
 class PostDetails extends Component {
 
-    componentDidMount() {
-        const { postId } = this.props.match.params
-        this.props.searchPostById(postId)
-        this.props.searchCommentsByPost(postId)
+  state = {
+    showComment: false,
+    redirectToHome: false
+  }
 
-        //console.log('Id do POST: ' + postId)
-    }
+  componentDidMount() {
+    const { postId } = this.props.match.params
+    this.props.searchPostById(postId)
+    this.props.searchCommentsByPost(postId)
+  }
 
-    render() {
-        const { post, votePost, comments, voteComment } = this.props
+  toggleCommentForm = (op) => {
+    this.setState({ showComment: !op })
+  }
 
-        console.log(comments)
+  handleDeletePost = (postx) => {
+    this.props.deletePost(postx)
+    this.setState({ redirectToHome: true })
+  }
 
-        return (
-            <div>
-                <h1>PostDetails</h1>
+  setShowCommentForm(booleanValue) {
+    this.setState({ showComment: booleanValue })
+  }
 
-                {post && (
-                    <div>
-                        <h2>{post.title}</h2>
-                        <p>Author: {capitalize(post.author)} || Vote Score: {post.voteScore} || Comment: {post.commentCount} || Category: {post.category.toUpperCase()}</p>
-                        <p>{post.body}</p>
-                        
+  render() {
+    if (this.state.redirectToHome) return <Redirect to={'/'} />
 
-                        <button onClick={() => votePost(post.id, 'upVote')}>VoteUp</button>
-                        <button onClick={() => votePost(post.id, 'downVote')}>VoteDown</button>
-                        <button>Add Comment</button>
-                        <p>----------------------</p>
-                    </div>
-                )}
+    const { post, votePost, comments, voteComment, deleteComment } = this.props
+    const { showComment } = this.state
 
-                <p>==================================================================</p>
-                <h4>Amount of comments: {comments.length}</h4>
-                {post && comments.length > 0 &&
-                    comments.map(comment => (
-                        <div key={comment.id}>
-                            <p>***************coment*****************</p>
-                            <p><b>Author:</b> {comment.author} || <b>Sent:</b> {formatDateTime(comment.timestamp)}  || <b>Vote Score:</b> {comment.voteScore}</p>
-                            <p>{comment.body}</p>
-                            <button onClick={() => voteComment(comment.id, 'upVote')}>VoteUp</button>
-                            <button onClick={() => voteComment(comment.id, 'downVote')}>VoteDown</button>
-                        </div>
-                    ))}
+    return (
+      <div>
+        {post && (
+          <div className="divPost">
+            <h2>{post.title}</h2>
+            <p><b>Author:</b> {capitalize(post.author)}  <b>Category:</b> {capitalize(post.category)}  <b>Sent:</b> {formatDateTime(post.timestamp)}</p>
+            <p><b>Comment:</b> {post.commentCount}  <b>Vote Score:</b> {post.voteScore} </p>
+            <p>{post.body}</p>
 
-                <br></br>
-                <Link to="/"><button>***** VOLTAR *****</button></Link>
+            <div className="action-button">
+              <Link to={`/post/edit/${post.id}`}>
+                <img src={iconEdit} title="Edit Post" alt="Edit Post" />
+              </Link>
+              <img src={iconLike} onClick={() => votePost(post.id, 'upVote')} title="Vote UP" alt="Vote UP" />
+              <img src={iconUnlike} onClick={() => votePost(post.id, 'downVote')} title="Vote DOWN" alt="Vote DOWN" />
+              <img src={iconTrash} onClick={() => this.handleDeletePost(post)} title="Delete Post" alt="Delete Post" />
+              <img src={iconComment} onClick={() => this.toggleCommentForm(showComment)} title="Add Comment" alt="Add Comment" />
             </div>
-        )
-    }
+
+            <hr />
+            {this.state.showComment && (
+              <div>
+                <CommentForm post={post}
+                  callbackParent={(bValue) => this.setShowCommentForm(bValue)}
+                  comments={comments} />
+              </div>
+            )}
+
+            {!this.state.showComment && (
+              <div className="divComment">
+                <h3>List of Comments (amount: {comments.length})</h3>
+                {post && comments.length > 0 &&
+                  comments.map(comment => (
+                    <div key={comment.id} className="divListComment">
+                      <p><b>Author:</b> {comment.author}  <b>Sent:</b> {formatDateTime(comment.timestamp)}   <b>Vote Score:</b> {comment.voteScore}</p>
+                      <p>{comment.body}</p>
+                      <div className="action-button">
+                        <img src={iconLike} onClick={() => voteComment(comment.id, 'upVote')} title="Vote UP" alt="Vote UP" />
+                        <img src={iconUnlike} onClick={() => voteComment(comment.id, 'downVote')} title="Vote DOWN" alt="Vote DOWN" />
+                        <img src={iconTrash} onClick={() => deleteComment(comment)} title="Delete Comment" alt="Delete Comment" />
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    )
+  }
 }
 
 const mapStateToProps = ({ posts, comments }) => ({ post: posts && posts[0], comments })
-
-const mapDispatchToProps = dispatch => bindActionCreators({ searchPosts, searchPostById, searchPostsByCategory, votePost, searchCommentsByPost, voteComment }, dispatch)
-
+const mapDispatchToProps = dispatch => bindActionCreators({ searchPosts, searchPostById, searchPostsByCategory, votePost, searchCommentsByPost, voteComment, deletePost, deleteComment }, dispatch)
 export default connect(mapStateToProps, mapDispatchToProps)(PostDetails)

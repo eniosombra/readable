@@ -5,21 +5,17 @@ import { Link } from 'react-router-dom'
 import { Redirect } from 'react-router-dom'
 import uuid from 'uuid'
 
-import { addPost, searchPostById } from '../actions/postsAction'
+import { addPost, updatePost, searchPostById } from '../actions/postsAction'
 import { capitalize } from '../helper/helper'
+import iconSave from '../assets/save.png'
+import iconCancel from '../assets/cancel.png'
 
 class PostForm extends Component {
-
-    constructor(props) {
-        super(props)
-        this.handleAdd = this.handleAdd.bind(this)
-    }
-
     state = {
         title: '',
         body: '',
         author: '',
-        category: 'react',
+        category: '',
         invalidField: false,
         redirectToHome: false,
         operation: 'new'
@@ -28,10 +24,8 @@ class PostForm extends Component {
     componentDidMount() {
         const { postId } = this.props.match.params
         this.setOperation(postId)
-
         const { post } = this.props
         this.populateFields(post)
-        //this.getData(postId)
     }
 
     componentWillReceiveProps(nextProps) {
@@ -45,10 +39,7 @@ class PostForm extends Component {
     setOperation(postId) {
         if (postId !== undefined) {
             this.setState({ operation: 'update' })
-
-            console.log('update')
         } else {
-            console.log('new')
             this.setState({ operation: 'new' })
             this.clearFields()
         }
@@ -56,19 +47,15 @@ class PostForm extends Component {
 
     handleChange = (event) => {
         this.setState({ [event.target.id]: event.target.value })
-        console.log(event.target.value)
     }
 
     populateFields = (post) => {
-        console.log(post)
         this.setState({
             title: post ? post.title : '',
             body: post ? post.body : '',
             author: post ? post.author : '',
             category: post ? post.category : ''
         })
-
-        //console.log(post.category)
     }
 
     clearFields = () => {
@@ -88,16 +75,18 @@ class PostForm extends Component {
             ? true : false
     }
 
-    handleAdd() {
+    handleAdd = () => {
         if (this.isEmptyField()) {
-            console.log('Is there any empty fields')
             this.setState({ invalidField: true, redirectToHome: false })
         } else {
             let newRecord = {}
-            const { addPost } = this.props
+            const { addPost, updatePost } = this.props
+
+            const idRecord = (this.state.operation === 'new') ?
+                uuid().split('-').join('') : this.props.post.id
 
             newRecord = {
-                id: uuid().split('-').join(''),
+                id: idRecord,
                 title: this.state.title,
                 body: this.state.body,
                 author: this.state.author,
@@ -105,8 +94,13 @@ class PostForm extends Component {
                 timestamp: Date.now()
             }
 
-            addPost(newRecord)
-            console.log('Data added successfully!')
+            if (this.state.operation === 'new') {
+                addPost(newRecord)
+            }
+            else {
+                updatePost(newRecord)
+            }
+
             this.clearFields()
             this.setState({ invalidField: false, redirectToHome: true })
         }
@@ -118,7 +112,7 @@ class PostForm extends Component {
         const { operation } = this.state
 
         return (
-            <div>
+            <div className="divComment">
                 <h1>Form {capitalize(operation)} Post</h1>
 
                 Title:
@@ -132,6 +126,7 @@ class PostForm extends Component {
 
                 Category:
                 <select id="category" value={this.state.category} onChange={this.handleChange}>
+                    <option value=""></option>
                     <option value="react" >react</option>
                     <option value="redux">redux</option>
                     <option value="udacity">udacity</option>
@@ -145,9 +140,11 @@ class PostForm extends Component {
 
                 <br />
 
-                <button onClick={this.handleAdd}>{capitalize(operation)} Post</button>
-
-                <Link to={'/'}><button>Cancel</button></Link>
+                <div className="action-button">
+                    <img src={iconSave} onClick={this.handleAdd} title="Save" alt="Save" />
+                    <Link to={'/'}><img src={iconCancel} title="Cancel" alt="Cancel" /></Link>
+                    <hr />
+                </div>
             </div>
         )
     }
@@ -155,11 +152,8 @@ class PostForm extends Component {
 
 const mapStateToProps = ({ posts }, ownProps) => {
     const { postId } = ownProps.match.params
-    return {
-        post: posts && posts.find(post => post.id === postId)
-    }
+    return { post: posts && posts.find(post => post.id === postId) }
 }
 
-
-const mapDispatchToProps = dispatch => bindActionCreators({ addPost, searchPostById }, dispatch)
+const mapDispatchToProps = dispatch => bindActionCreators({ addPost, updatePost, searchPostById }, dispatch)
 export default connect(mapStateToProps, mapDispatchToProps)(PostForm)
