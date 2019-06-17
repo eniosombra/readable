@@ -7,28 +7,49 @@ import '../App.css'
 import { addComment, updateComment } from '../actions/commentsAction'
 import iconSave from '../assets/save.png'
 import iconCancel from '../assets/cancel.png'
+import { capitalize } from '../helper/helper'
 
 class CommentForm extends Component {
 
    state = {
-      body: (this.props.comments ? this.props.comments.body : '') || '',
-      author: (this.props.comments ? this.props.comments.author : '') || '',
+      body: '',
+      author: '',
       invalidField: false
    }
 
-   addComment = (post) => {
+   componentDidMount() {
+      if (this.props.operation === 'new') {
+         this.clearFields()
+      } else {
+         const { body, author } = this.props
+         this.populateFields(body, author)
+      }
+   }
+
+   handleSaveComment = (post, operation) => {
       if (this.isEmptyField()) {
          this.setState({ invalidField: true })
       } else {
-         const { addComment } = this.props
-         let newRecord = {
-            id: uuid().split('-').join(''),
+         const { addComment, updateComment, idComment } = this.props
+
+         const idRecord = (operation === 'new')
+            ? uuid().split('-').join('') : idComment
+
+         let record = {
+            id: idRecord,
             timestamp: Date.now(),
             body: this.state.body,
             author: this.state.author,
             parentId: post.id
          }
-         addComment(newRecord)
+
+         if (operation === 'new') {
+            addComment(record)
+         }
+         else {
+            updateComment(record)
+         }
+
          this.props.callbackParent(false)
          this.setState({ invalidField: false })
       }
@@ -42,11 +63,27 @@ class CommentForm extends Component {
       return this.state.body.length === 0 || this.state.author.length === 0 ? true : false
    }
 
+   populateFields = (body, author) => {
+      this.setState({
+         body: body,
+         author: author
+      })
+   }
+
+   clearFields = () => {
+      this.setState({
+         body: '',
+         author: ''
+      })
+   }
+
+
    render() {
-      const { post } = this.props
+      const { post, operation } = this.props
+
       return (
          <div className="divComment">
-            <h3>New Comment</h3>
+            <h3>{capitalize(operation)} Comment</h3>
             <br />
             <b>Comment:</b>
             <input id="body" type="text" value={this.state.body} onChange={this.handleChange} />
@@ -61,7 +98,7 @@ class CommentForm extends Component {
             )}
 
             <div className="action-button">
-               <img src={iconSave} onClick={() => this.addComment(post)} title="Save" alt="Save" />
+               <img src={iconSave} onClick={() => this.handleSaveComment(post, operation)} title="Save" alt="Save" />
                <img src={iconCancel} onClick={() => this.props.callbackParent(false)} title="Cancel" alt="Cancel" />
                <hr />
             </div>

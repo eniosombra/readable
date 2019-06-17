@@ -47,8 +47,12 @@ class PostList extends Component {
             <div>
                 <header id="main-header">
                     <div className="header-submenu">
-                        <h3>List of Posts: <b> {category ? category.toUpperCase() + ' ' : ' ALL '} </b></h3>
 
+                        {category !== 'notfound' ?
+                            (
+                                <h3>List of Posts: <b> {category ? category.toUpperCase() + ' ' : ' ALL '} </b></h3>
+                            )
+                            : null}
                         Sort by:
                         <img src={iconOrderByScore} onClick={() => this.sortByScore('SCORE_ORDER')} title="Sort by Score" alt="Sort by Score" />
                         <img src={iconOrderByDateTime} onClick={() => this.sortByScore('TIMESTAMP_ORDER')} title="Sort by Time" alt="Sort by Time" />

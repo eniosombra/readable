@@ -8,6 +8,7 @@ import PostList from './components/PostList'
 import PostForm from './components/PostForm'
 import CommentForm from './components/CommentForm'
 import Header from './components/Header'
+import NoFound from './components/NoFound'
 
 export default class App extends Component {
   render() {
@@ -17,6 +18,8 @@ export default class App extends Component {
         <Category />
         <Route exact path="/" component={PostList} />
         <Route exact path="/:category" component={PostList} />
+        <Route exact path="/notfound" component={NoFound} />
+        
         <Switch>
           <Route exact path="/post/new" component={PostForm} />
           <Route exact path="/post/edit/:postId" component={PostForm} />

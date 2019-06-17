@@ -111,6 +111,8 @@ class PostForm extends Component {
 
         const { operation } = this.state
 
+        if (operation === 'update' && this.isEmptyField()) return <Redirect to={'/notfound'} />       
+        
         return (
             <div className="divComment">
                 <h1>Form {capitalize(operation)} Post</h1>

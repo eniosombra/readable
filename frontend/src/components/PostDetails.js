@@ -18,7 +18,11 @@ class PostDetails extends Component {
 
   state = {
     showComment: false,
-    redirectToHome: false
+    redirectToHome: false,
+    paramBody : '',
+    paramAuthor : '',
+    paramIdComment: '',
+    operationComment: 'new'
   }
 
   componentDidMount() {
@@ -27,8 +31,8 @@ class PostDetails extends Component {
     this.props.searchCommentsByPost(postId)
   }
 
-  toggleCommentForm = (op) => {
-    this.setState({ showComment: !op })
+  toggleCommentForm = (option, operation) => {
+    this.setState({ showComment: !option, operationComment: operation })
   }
 
   handleDeletePost = (postx) => {
@@ -36,12 +40,24 @@ class PostDetails extends Component {
     this.setState({ redirectToHome: true })
   }
 
-  setShowCommentForm(booleanValue) {
-    this.setState({ showComment: booleanValue })
+  setShowCommentForm(booleanValue, operation, body, author, id) {
+    this.setState({ 
+      showComment: booleanValue, 
+      operationComment: operation, 
+      paramBody: body, 
+      paramAuthor: author, 
+      paramIdComment: id 
+    })
+  }
+
+  isInvalidObject(obj) {
+    return JSON.stringify(obj) ==='{}'
   }
 
   render() {
     if (this.state.redirectToHome) return <Redirect to={'/'} />
+
+    if (this.isInvalidObject(this.props.post)) return <Redirect to={'/notfound'} />
 
     const { post, votePost, comments, voteComment, deleteComment } = this.props
     const { showComment } = this.state
@@ -62,15 +78,20 @@ class PostDetails extends Component {
               <img src={iconLike} onClick={() => votePost(post.id, 'upVote')} title="Vote UP" alt="Vote UP" />
               <img src={iconUnlike} onClick={() => votePost(post.id, 'downVote')} title="Vote DOWN" alt="Vote DOWN" />
               <img src={iconTrash} onClick={() => this.handleDeletePost(post)} title="Delete Post" alt="Delete Post" />
-              <img src={iconComment} onClick={() => this.toggleCommentForm(showComment)} title="Add Comment" alt="Add Comment" />
+              <img src={iconComment} onClick={() => this.toggleCommentForm(showComment, 'new')} title="Add Comment" alt="Add Comment" />
             </div>
 
             <hr />
             {this.state.showComment && (
               <div>
                 <CommentForm post={post}
-                  callbackParent={(bValue) => this.setShowCommentForm(bValue)}
-                  comments={comments} />
+                  callbackParent={(bValue) => this.setShowCommentForm(bValue, 'new', this.state.paramBody, this.state.paramAuthor)}
+                  comments={comments}
+                  operation={this.state.operationComment}
+                  body={this.state.paramBody}
+                  author={this.state.paramAuthor}
+                  idComment={this.state.paramIdComment}
+                  />
               </div>
             )}
 
@@ -83,6 +104,7 @@ class PostDetails extends Component {
                       <p><b>Author:</b> {comment.author}  <b>Sent:</b> {formatDateTime(comment.timestamp)}   <b>Vote Score:</b> {comment.voteScore}</p>
                       <p>{comment.body}</p>
                       <div className="action-button">
+                        <img src={iconEdit} onClick={() => this.setShowCommentForm(true, 'edit', comment.body, comment.author, comment.id)} title="Edit Comment" alt="Edit Comment" />
                         <img src={iconLike} onClick={() => voteComment(comment.id, 'upVote')} title="Vote UP" alt="Vote UP" />
                         <img src={iconUnlike} onClick={() => voteComment(comment.id, 'downVote')} title="Vote DOWN" alt="Vote DOWN" />
                         <img src={iconTrash} onClick={() => deleteComment(comment)} title="Delete Comment" alt="Delete Comment" />
